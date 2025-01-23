@@ -1,4 +1,4 @@
-using SeisTools, LinearAlgebra
+using SeisTools, LinearAlgebra, DelimitedFiles
 
 include("../julia/FMI_IO.jl")
 
@@ -35,21 +35,22 @@ function gf(x1, y1, z1, x2, y2, z2, vp, vs, M0, npts, hw)
 end
 
 n_receiver = 6
-npts = 1000
+npts = 400
 dt = 0.01
-halfwidth = 10
+halfwidth = 20
 M0 = 30.0
 sdr = SeisTools.Source.SDR(10, 20, 30)
 mt = SeisTools.Source.MomentTensor(sdr)
 mtvec = collect(mt.values)
 
 receivers = randn(2, n_receiver)
+writedlm("receivers.txt", receivers)
 source = [0.1, -0.1, 3.2]
 vp = 5.0
 vs = 3.0
 
-x_search = -5:2.0:5.0
-y_search = -5:2.0:5.0
+x_search = -3:1.0:3.0
+y_search = -3:1.0:3.0
 z_search = 1.0:1.0:5
 
 traces = map(1:n_receiver) do ir
@@ -59,7 +60,7 @@ end
 
 # sourclocs = CartesianIndices((length(z_search), length(y_search), length(x_search))) |> vec
 
-mts = map(vec(CartesianIndices((0:10:300, 0:5:90, -90:10:90)))) do ci
+mts = map(vec(CartesianIndices((0:10:350, 0:5:90, -90:10:90)))) do ci
     mt0 = SeisTools.Source.MomentTensor(SeisTools.Source.SDR(ci[1], ci[2], ci[3]))
     return FMI_IO.MomentTensor(mt0.values...)
 end

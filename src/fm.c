@@ -36,9 +36,9 @@ int main() {
     int64_t imt, itr, isrc, igf, imisfit;
     printf("Calculate\n");
     for(itr = 0; itr < n_obs_traces; itr++)
-        for(isrc = 0; isrc < n_srcloc; isrc++) {
-            igf = isrc + n_srcloc * itr;
+        for(isrc = 0; isrc < n_srcloc; isrc++)
             for(imt = 0; imt < n_mt; imt++) {
+                igf = isrc + n_srcloc * itr;
                 imisfit = itr + n_obs_traces * (imt + n_mt * isrc);
 #ifdef DEBUG
                     printf("trace: %lld, src: %lld, mt: %lld, gf: %lld, result: %lld\n", itr, isrc, imt, igf, imisfit);
@@ -51,8 +51,6 @@ int main() {
                     &(misfit_polarity[imisfit]),
                     &(misfit_psr[imisfit]));
             }
-        }
-
 
     printf("Output\n");
     write_result("output.bin", n_obs_traces, n_mt, n_srcloc,

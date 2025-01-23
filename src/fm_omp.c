@@ -7,7 +7,7 @@
 
 // #define DEBUG 1
 
-#define NUM_THREADS 8
+#define NUM_THREADS 14
 
 #define allocmisfit(name, type) type *name = NULL; \
     name = (type *)malloc(n_result * sizeof(type)); \
@@ -39,31 +39,31 @@ int main() {
     allocmisfit(misfit_psr, float);
 
     int64_t imt, itr, isrc, igf, imisfit;
-    int ithread;
     printf("Calculate\n");
 
-#pragma omp parallel default(none) private(imt, itr, isrc, igf, imisfit, ithread) shared(n_obs_traces, n_mt, n_srcloc, traces, mts, gf_database, misfit_pl2, misfit_pshift, misfit_sl2, misfit_sshift, misfit_polarity, misfit_psr)
-    {
-        ithread = omp_get_thread_num();
-        printf("Thread %d begin\n", ithread);
-        for(itr = 0; itr < n_obs_traces; itr++)
-            for(isrc = 0; isrc < n_srcloc; isrc++) {
+#pragma omp parallel for default(none) \
+    private(imt, itr, isrc, igf, imisfit) \
+    shared(n_obs_traces, n_mt, n_srcloc, traces, mts, gf_database, misfit_pl2, \
+    misfit_pshift, misfit_sl2, misfit_sshift, misfit_polarity, misfit_psr) \
+    collapse(3)
+
+    for(itr = 0; itr < n_obs_traces; itr++)
+        for(isrc = 0; isrc < n_srcloc; isrc++)
+            for(imt = 0; imt < n_mt; imt++) {
                 igf = isrc + n_srcloc * itr;
-                for(imt = 0; imt < n_mt; imt++) {
-                    imisfit = itr + n_obs_traces * (imt + n_mt * isrc);
+                imisfit = itr + n_obs_traces * (imt + n_mt * isrc);
 #ifdef DEBUG
-                    printf("trace: %lld, src: %lld, mt: %lld, gf: %lld, result: %lld\n", itr, isrc, imt, igf, imisfit);
+                printf("trace: %lld, src: %lld, mt: %lld, gf: %lld, result: %lld\n", itr, isrc, imt, igf, imisfit);
 #endif
-                    kernel(traces[itr], mts[imt], gf_database[igf],
-                        &(misfit_pl2[imisfit]),
-                        &(misfit_pshift[imisfit]),
-                        &(misfit_sl2[imisfit]),
-                        &(misfit_sshift[imisfit]),
-                        &(misfit_polarity[imisfit]),
-                        &(misfit_psr[imisfit]));
-                }
+                kernel(traces[itr], mts[imt], gf_database[igf],
+                    &(misfit_pl2[imisfit]),
+                    &(misfit_pshift[imisfit]),
+                    &(misfit_sl2[imisfit]),
+                    &(misfit_sshift[imisfit]),
+                    &(misfit_polarity[imisfit]),
+                    &(misfit_psr[imisfit]));
             }
-    }
+
 
     printf("Output\n");
     write_result("output_omp.bin", n_obs_traces, n_mt, n_srcloc,
