@@ -73,5 +73,6 @@ gf_db = map(vec(CartesianIndices((length(z_search), length(y_search), length(x_s
     return FMI_IO.GFtrace(npts, ip, is, w[:, 1], w[:, 2], w[:, 3], w[:, 4], w[:, 5], w[:, 6])
 end
 
-open(io -> FMI_IO.write_c_input(io, traces, mts, gf_db), "../build/input.bin", "w")
-open(io -> FMI_IO.write_c_input(io, traces, mts, gf_db), "../build/input_omp.bin", "w")
+open(io -> FMI_IO.write_c_input(io, traces, mts, gf_db), "input.bin", "w")
+open(io -> FMI_IO.write_c_input(io, traces, mts, gf_db), "input_omp.bin", "w")
+open(io -> FMI_IO.write_c_input(io, traces, mts, gf_db), "input_cuda.bin", "w")

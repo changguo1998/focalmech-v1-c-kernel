@@ -26,7 +26,6 @@ void printfloatvec(int n, float* v) {
 }
 
 void read_trace(Trace* tr, FILE* fp) {
-    int i;
     readint(tr->n_samples);
     readint(tr->ref_i);
     readint(tr->pwin_i);
@@ -39,7 +38,6 @@ void read_trace(Trace* tr, FILE* fp) {
 #endif
     tr->obs = (float*)malloc(tr->n_samples * sizeof(float));
     fread(tr->obs, sizeof(float), tr->n_samples, fp);
-    // for(i = 0; i < tr->n_samples; i++) readfloat(tr->obs[i]);
 #ifdef DEBUG
     printf("%p\n", tr->obs);
     printfloatvec(tr->n_samples, tr->obs);
@@ -60,6 +58,23 @@ void write_trace(const Trace* tr, FILE* fp) {
 void free_trace(Trace* tr) {
     free(tr->obs);
     tr->obs = NULL;
+}
+
+void copy_trace_to_gpu(Trace *tr_mem, Trace *tr_gpu){
+    // printf("(copy_trace_to_gpu) \n");
+    // printf("(copy_trace_to_gpu) memcpy Trace struct\n");
+    cudaMemcpy(tr_gpu, tr_mem, sizeof(Trace), cudaMemcpyHostToDevice);
+    size_t nb = tr_mem->n_samples * sizeof(float);
+    float *p;
+    // printf("(copy_trace_to_gpu) alloc obs array on GPU\n");
+    cudaMalloc((float**)&p, nb);
+    // printf("(copy_trace_to_gpu) memcpy obs array\n");
+    cudaMemcpy(p, tr_mem->obs, nb, cudaMemcpyHostToDevice);
+    cudaMemcpy(&(tr_gpu->obs), &p, sizeof(float*), cudaMemcpyHostToDevice);
+}
+
+void free_trace_on_gpu(Trace* tr_gpu){
+    cudaFree(tr_gpu->obs);
 }
 
 void read_mt(MomentTensor* mt, FILE* fp) {
@@ -165,6 +180,32 @@ void free_gf_trace(GFtrace* gf) {
     gf->g13 = NULL;
     free(gf->g23);
     gf->g23 = NULL;
+}
+
+#define copygfcomponent(c)\
+cudaMalloc((float**)&p, nb);\
+cudaMemcpy(p, gf_mem->g##c, nb, cudaMemcpyHostToDevice);\
+cudaMemcpy(&(gf_gpu->g##c), &p, sizeof(float*), cudaMemcpyHostToDevice)
+
+void copy_gftrace_to_gpu(GFtrace *gf_mem, GFtrace *gf_gpu){
+    cudaMemcpy(gf_gpu, gf_mem, sizeof(GFtrace), cudaMemcpyHostToDevice);
+    size_t nb = gf_mem->n_samples * sizeof(float);
+    float *p;
+    copygfcomponent(11);
+    copygfcomponent(22);
+    copygfcomponent(33);
+    copygfcomponent(12);
+    copygfcomponent(13);
+    copygfcomponent(23);
+}
+
+void free_gftrace_on_gpu(GFtrace *gf_gpu){
+    cudaFree(gf_gpu->g11);
+    cudaFree(gf_gpu->g22);
+    cudaFree(gf_gpu->g33);
+    cudaFree(gf_gpu->g12);
+    cudaFree(gf_gpu->g13);
+    cudaFree(gf_gpu->g23);
 }
 
 #undef DEBUG

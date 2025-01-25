@@ -6,6 +6,7 @@
 
 // #define DEBUG 1
 
+__device__
 void cal_normalized_l2(float* nm,
                        int    l,
                        int    i1,
@@ -50,6 +51,7 @@ void cal_normalized_l2(float* nm,
     *nm = sqrtf(0.5 - 0.5 * sum);
 }
 
+__device__
 void min_l2(Trace*        tr,
             MomentTensor* mt,
             GFtrace*      gf,
@@ -85,8 +87,11 @@ void min_l2(Trace*        tr,
     (pgf)->g13[(igf)] * (pmt)->m13 + \
     (pgf)->g23[(igf)] * (pmt)->m23
 
+__global__
 void kernel(
+#ifndef GPU
     int imisfit,
+#endif
     int           n_trace,
     Trace*        tr,
     int           n_mt,
@@ -100,6 +105,12 @@ void kernel(
     float*        pol,
     float*        psr) {
     int itr, imt, iloc, igf, it, pmaxshift, smaxshift;
+#ifdef GPU
+    int imisfit, bid, tid;
+    bid = blockIdx.x;
+    tid = threadIdx.x;
+    imisfit = tid + bid * blockDim.x;
+#endif
 
     if(imisfit >= (n_trace * n_mt * n_loc)) return;
 

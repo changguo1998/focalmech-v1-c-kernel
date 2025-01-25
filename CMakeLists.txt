@@ -1,21 +1,33 @@
 cmake_minimum_required(VERSION 3.22)
-project(focalmech_C LANGUAGES C)
+project(focalmech_C LANGUAGES C CUDA)
 
 include_directories(include)
+file(GLOB myincludes include/*.h)
 
-find_package(OpenMP)
-
-add_executable(fm include/fm.h include/kernel.h include/types.h src/fm.c src/kernel.c src/types.c
-        src/io.c include/io.h)
+add_executable(fm src/fm.c src/kernel.c src/types.c src/io.c ${myincludes})
 target_include_directories(fm PRIVATE include)
-target_link_libraries(fm PRIVATE m)
+# target_link_libraries(fm PRIVATE m)
 install(TARGETS fm)
 
-add_executable(fm_omp include/fm.h include/kernel.h include/types.h src/fm_omp.c src/kernel.c src/types.c
-        src/io.c include/io.h)
+find_package(OpenMP)
+add_executable(fm_omp src/fm_omp.c src/kernel.c src/types.c src/io.c ${myincludes})
 target_include_directories(fm_omp PRIVATE include)
-target_link_libraries(fm_omp PRIVATE m OpenMP::OpenMP_C)
+target_link_libraries(fm_omp PRIVATE OpenMP::OpenMP_C)
 install(TARGETS fm_omp)
+
+message("USE GPU")
+enable_language(CUDA)
+include(CheckLanguage)
+find_package(CUDAToolkit)
+# check_language(CUDA)
+# !!! change arch of GPU before compiling. The supported arch can be get using `nvcc -h`
+set(CMAKE_CUDA_FLAGS "-rdc=true -arch=sm_90 --expt-relaxed-constexpr")
+add_executable(fm_cuda src/fm_cuda.cu src/kernel.cu src/types.cu src/io.cu ${myincludes})
+set_target_properties(fm_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_definitions(fm_cuda PRIVATE GPU)
+target_include_directories(fm_cuda PRIVATE include ${CUDA_LIBRARIES})
+target_link_libraries(fm_cuda PRIVATE CUDA::cudart)
+install(TARGETS fm_cuda)
 
 #add_executable(arrayio test/array_io.c)
 #install(TARGETS arrayio)

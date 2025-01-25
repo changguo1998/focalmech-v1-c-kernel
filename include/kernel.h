@@ -1,17 +1,26 @@
 #ifndef _KERNEL_H_
 #define _KERNEL_H_
 
-#include <stdint.h>
 #include "types.h"
 
-void kernel(Trace         tr,
-            MomentTensor  mt,
-            GFtrace       gf,
-            float*        pl2,
-            int64_t*      pshift,
-            float*        sl2,
-            int64_t*      sshift,
-            float*        pol,
-            float*        psr);
+#ifdef GPU
+__global__
+#endif
+void kernel(
+#ifndef GPU
+    int imisfit,
+#endif
+    int           n_trace,
+    Trace*        tr,
+    int           n_mt,
+    MomentTensor* mt,
+    int           n_loc,
+    GFtrace*      gf,
+    float*        pl2,
+    int*          pshift,
+    float*        sl2,
+    int*          sshift,
+    float*        pol,
+    float*        psr);
 
 #endif // _KERNEL_H_

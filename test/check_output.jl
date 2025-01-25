@@ -2,7 +2,7 @@ using SeisTools, CairoMakie, LinearAlgebra, Statistics, DelimitedFiles
 
 include("../julia/FMI_IO.jl")
 
-(trs, mts, gfs) = FMI_IO.read_c_input("../build/input_omp.bin");
+(trs, mts, gfs) = FMI_IO.read_c_input("input_omp.bin");
 
 fig1 = Figure();
 ax1 = Axis(fig1[1,1]);
@@ -14,7 +14,7 @@ for i = eachindex(trs)
 end
 save("traces.png", fig1);
 
-t = FMI_IO.read_c_result("../build/output_omp.bin");
+t = FMI_IO.read_c_result("output_omp.bin");
 
 misfit = dropdims(sum(t.pl2 + t.sl2, dims=1), dims=1);
 

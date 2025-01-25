@@ -53,7 +53,10 @@ dkms.conf
 
 .idea/
 .vscode/
+.vs/
 build/
-cmake-build-debug/
+cmake-build-debug*/
 *.png
+*.bin
 receivers.txt
+out/

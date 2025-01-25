@@ -1,6 +1,6 @@
 include("../julia/FMI_IO.jl")
 
-(trs, mts, gfs) = FMI_IO.read_c_input("../build/input.bin")
+(trs, mts, gfs) = FMI_IO.read_c_input("input.bin")
 
 println("Traces($(length(trs))):")
 for i = eachindex(trs)
