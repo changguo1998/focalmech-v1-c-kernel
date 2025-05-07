@@ -7,7 +7,7 @@
 // #define DEBUG 1
 
 __device__
-void cal_normalized_l2(float* nm,
+void cal_normalized_l2_gpu(float* nm,
                        int    l,
                        int    i1,
                        float* w1,
@@ -52,7 +52,7 @@ void cal_normalized_l2(float* nm,
 }
 
 __device__
-void min_l2(Trace*        tr,
+void min_l2_gpu(Trace*        tr,
             MomentTensor* mt,
             GFtrace*      gf,
             int           iobs,
@@ -69,7 +69,7 @@ void min_l2(Trace*        tr,
     printf("win: %d, obs: %d, syn: %d, maxshift: %d\n", wlen, iobs, isyn, maxshift);
 #endif
     for(tshift = -maxshift; tshift < maxshift; tshift++) {
-        cal_normalized_l2(&tmisfit, wlen, iobs, tr->obs, isyn + tshift,
+        cal_normalized_l2_gpu(&tmisfit, wlen, iobs, tr->obs, isyn + tshift,
             gf->g11, gf->g22, gf->g33, gf->g12, gf->g13, gf->g23,
             mt->m11, mt->m22, mt->m33, mt->m12, mt->m13, mt->m23);
         if(tmisfit < *misfit) {
@@ -88,10 +88,7 @@ void min_l2(Trace*        tr,
     (pgf)->g23[(igf)] * (pmt)->m23
 
 __global__
-void kernel(
-#ifndef GPU
-    int imisfit,
-#endif
+void kernel_gpu(
     int           n_trace,
     Trace*        tr,
     int           n_mt,
@@ -105,12 +102,10 @@ void kernel(
     float*        pol,
     float*        psr) {
     int itr, imt, iloc, igf, it, pmaxshift, smaxshift;
-#ifdef GPU
     int imisfit, bid, tid;
     bid = blockIdx.x;
     tid = threadIdx.x;
     imisfit = tid + bid * blockDim.x;
-#endif
 
     if(imisfit >= (n_trace * n_mt * n_loc)) return;
 
@@ -131,12 +126,12 @@ void kernel(
 #ifdef DEBUG
     printf("L2 P\n");
 #endif
-    min_l2(ptr, pmt, pgf, ptr->pwin_i, pgf->p_i, ptr->pwin_l, pmaxshift, &pl2[imisfit], &pshift[imisfit]);
+    min_l2_gpu(ptr, pmt, pgf, ptr->pwin_i, pgf->p_i, ptr->pwin_l, pmaxshift, &pl2[imisfit], &pshift[imisfit]);
 
 #ifdef DEBUG
     printf("L2 S\n");
 #endif
-    min_l2(ptr, pmt, pgf, ptr->swin_i, pgf->s_i, ptr->swin_l, smaxshift, &sl2[imisfit], &sshift[imisfit]);
+    min_l2_gpu(ptr, pmt, pgf, ptr->swin_i, pgf->s_i, ptr->swin_l, smaxshift, &sl2[imisfit], &sshift[imisfit]);
 
     // polarity
 #ifdef DEBUG

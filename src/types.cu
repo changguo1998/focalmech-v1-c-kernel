@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <cuda.h>
 #include "types.h"
 
 // #define DEBUG 1

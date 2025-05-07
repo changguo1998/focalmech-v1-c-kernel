@@ -81,7 +81,7 @@ int main() {
 //            }
     dim3 block(32);
     dim3 grid(n_result/32+1);
-    kernel<<<grid,block>>>(n_obs_traces, traces_gpu, n_mt, mts_gpu, n_srcloc, gf_gpu,
+    kernel_gpu<<<grid,block>>>(n_obs_traces, traces_gpu, n_mt, mts_gpu, n_srcloc, gf_gpu,
                     misfit_pl2_gpu, misfit_pshift_gpu,
                     misfit_sl2_gpu, misfit_sshift_gpu,
                     misfit_polarity_gpu, misfit_psr_gpu);

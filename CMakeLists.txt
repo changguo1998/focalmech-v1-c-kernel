@@ -29,5 +29,13 @@ target_include_directories(fm_cuda PRIVATE include ${CUDA_LIBRARIES})
 target_link_libraries(fm_cuda PRIVATE CUDA::cudart)
 install(TARGETS fm_cuda)
 
+add_executable(test_nl2 src/test_nl2.cu)
+set_target_properties(test_nl2 PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+target_compile_definitions(test_nl2 PRIVATE GPU)
+target_include_directories(test_nl2 PRIVATE include ${CUDA_LIBRARIES})
+target_link_libraries(test_nl2 PRIVATE CUDA::cudart)
+install(TARGETS test_nl2)
+
+
 #add_executable(arrayio test/array_io.c)
 #install(TARGETS arrayio)
